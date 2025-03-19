@@ -55,6 +55,9 @@ nav button.active {
 main {
   padding: 20px;
   background: rgb(33,33,33);
+  height: calc(100vh - 150px); /* Subtract header and footer height */
+  overflow-y: auto;
+  margin-bottom: 220px; /* Add margin to prevent content from being hidden behind the log */
 }
 
 /* Footer styles */
@@ -65,6 +68,7 @@ footer {
   position: fixed;
   bottom: 0;
   width: 100%;
+  z-index: 100;
 }
 
 /* Log container styles */
@@ -85,6 +89,30 @@ footer {
 .log-success {
   color: green;
   font-weight: bold;
+}
+
+.log-message {
+  padding: 2px 5px;
+  margin: 2px 0;
+  font-family: monospace;
+}
+
+.log-event {
+  color: #4CAF50;
+  font-weight: bold;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-left: 3px solid #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.log-status {
+  color: #2196F3;
+  font-weight: bold;
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-left: 3px solid #2196F3;
+  background-color: rgba(33, 150, 243, 0.1);
 }
 
 /* Keypad Layout */
@@ -395,4 +423,15 @@ footer {
 
 .global-button:hover {
   background-color: #555;
+}
+
+.info-text {
+  background-color: #2c2c2c;
+  border-left: 4px solid #4CAF50;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 0.9em;
+  line-height: 1.4;
+  color: #e0e0e0;
 }

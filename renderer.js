@@ -861,18 +861,16 @@ function testConnection() {
 }
 
 function sendTestCommand() {
-  const commandInput = document.getElementById('testCommand');
-  if (!commandInput) {
-    console.error("DEBUG: Test command input field not found.");
-    return;
+  const command = document.getElementById('testCommand').value;
+  if (command) {
+    sendCommand(command);
   }
-  const command = commandInput.value.trim();
-  if (!command) {
-    logMessage("⚠️ No command entered.", "log-warning");
-    return;
-  }
-  console.log(`DEBUG: Sending Test Command: ${command}`);
+}
+
+function sendEventReportCommand(state) {
+  const command = `$Events,${state};`;
   sendCommand(command);
+  logMessage(`Sent Event Report ${state ? 'ON' : 'OFF'} command: ${command}`);
 }
 
 // =============================================================================
@@ -962,7 +960,37 @@ function sendRawCommand(message) {
 // =============================================================================
 window.electronAPI.onLogMessage((message) => {
   console.log("DEBUG: UI Log Message Received:", message);
-  logMessage(message, "log-response");
+  
+  // Handle button state messages
+  if (message.startsWith('!BTNSTATE,')) {
+    const parts = message.split(',');
+    if (parts.length >= 2) {
+      const plateAddress = parts[1];
+      // Log the original message
+      logMessage(message, "log-response");
+      // Add the formatted plate message in green
+      logMessage(`Plate ${plateAddress} Pressed`, "log-success");
+    } else {
+      logMessage(message, "log-response");
+    }
+  }
+  // Handle input state messages
+  else if (message.startsWith('!INPSTATE,')) {
+    const parts = message.split(',');
+    if (parts.length >= 4) {
+      const address = parts[1];
+      const input = parts[3];
+      // Log the original message
+      logMessage(message, "log-response");
+      // Add the formatted input message in green
+      logMessage(`INPUT ${address} Triggered ${input}`, "log-success");
+    } else {
+      logMessage(message, "log-response");
+    }
+  } 
+  else {
+    logMessage(message, "log-response");
+  }
   
   if (message.includes("!AREANAME,")) {
     const areas = parseAreaResponse(message);

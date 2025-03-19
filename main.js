@@ -15,6 +15,9 @@ const fetch = require('node-fetch/lib/index.js');
 let mainWindow;
 const settingsFile = path.join(__dirname, 'settings.txt');
 
+// Add global variable for persistent TCP connection
+let tcpClient = null;
+
 console.log("🔍 Electron App Starting...");
 
 // =============================================================================
@@ -138,30 +141,59 @@ ipcMain.on('open-scene-edit', (event, sceneData) => {
 });
 
 // =============================================================================
+// Function: establishTCPConnection
+// =============================================================================
+function establishTCPConnection(ip, port, event) {
+  if (tcpClient) {
+    console.log("DEBUG: Closing existing TCP connection");
+    tcpClient.destroy();
+  }
+
+  console.log(`DEBUG: Establishing persistent TCP connection to ${ip}:${port}`);
+  tcpClient = new net.Socket();
+  
+  tcpClient.connect(port, ip, () => {
+    console.log("DEBUG: TCP connection established");
+    event.reply('log-message', "TCP Connection Established");
+  });
+
+  tcpClient.on('data', (data) => {
+    const response = data.toString();
+    console.log("DEBUG: Received TCP data:", response);
+    event.reply('log-message', response);
+  });
+
+  tcpClient.on('error', (err) => {
+    console.error("DEBUG: TCP connection error:", err);
+    event.reply('log-message', `TCP Error: ${err.message}`);
+  });
+
+  tcpClient.on('close', () => {
+    console.log("DEBUG: TCP connection closed");
+    event.reply('log-message', "TCP Connection Closed");
+    tcpClient = null;
+  });
+
+  return tcpClient;
+}
+
+// =============================================================================
 // Function: sendTCPCommand
 // =============================================================================
 function sendTCPCommand(ip, port, command, event, callback) {
-  console.log(`DEBUG: Attempting TCP connection to ${ip}:${port}`);
-  const client = new net.Socket();
-  client.connect(port, ip, () => {
-    console.log("DEBUG: TCP connection established");
-    client.write(command, () => {
-      console.log("DEBUG: TCP Sent:", command);
-      event.reply('log-message', "TCP Sent: " + command);
-    });
-  });
-  client.on('data', (data) => {
-    const response = data.toString();
-    console.log("DEBUG: Received TCP data:", response);
+  console.log(`DEBUG: Sending TCP command: ${command}`);
+  
+  // If no connection exists or connection is closed, establish new one
+  if (!tcpClient || tcpClient.destroyed) {
+    tcpClient = establishTCPConnection(ip, port, event);
+  }
+
+  // Send the command
+  tcpClient.write(command, () => {
+    console.log("DEBUG: TCP Sent:", command);
+    event.reply('log-message', "TCP Sent: " + command);
     if (callback) {
-      callback(null, response);
-    }
-    client.destroy();
-  });
-  client.on('error', (err) => {
-    console.error("DEBUG: TCP connection error:", err);
-    if (callback) {
-      callback(err);
+      callback(null);
     }
   });
 }
@@ -182,4 +214,12 @@ function sendHTTPCommand(url, command) {
     return response.text();
   });
 }
+
+// Add cleanup on app quit
+app.on('before-quit', () => {
+  if (tcpClient) {
+    console.log("DEBUG: Closing TCP connection on app quit");
+    tcpClient.destroy();
+  }
+});
 
