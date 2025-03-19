@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>eDin+ Gateway Control</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>eDin+ Gateway Control</h1>
+    <nav>
+      <button id="setup-btn" onclick="showSection('setup')">Setup</button>
+      <button id="keypad-btn" onclick="showSection('keypad')">Keypad</button>
+      <button id="channel-btn" onclick="showSection('channel')">Channel</button>
+      <button id="dali-btn" onclick="showSection('dali')">Dali</button>
+      <button id="area-btn" onclick="showSection('area')">Area</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Setup Section -->
+    <div id="setup" class="section">
+      <h2>Gateway Setup</h2>
+      <label for="ipAddress">Gateway IP:</label>
+      <input type="text" id="ipAddress" placeholder="192.168.1.100">
+
+      <label for="connectionType">Connection Type:</label>
+      <select id="connectionType">
+        <option value="http" selected>HTTP (Default)</option>
+        <option value="tcp">TCP/IP (Port 26)</option>
+      </select>
+      
+      <label for="username">Username:</label>
+      <input type="text" id="username" placeholder="Administrator">
+      
+      <label for="password">Password:</label>
+      <input type="password" id="password" placeholder="mode1234">
+
+      <button onclick="saveSettings()">Save Settings</button>
+      
+      <h2>Test Connection</h2>
+      <button onclick="testConnection()">Test Connection</button>
+
+      <h2>Test Command</h2>
+      <label for="testCommand">Enter Command:</label>
+      <input type="text" id="testCommand" placeholder="Type a command...">
+      <button onclick="sendTestCommand()">Send</button>
+    </div>
+
+    <!-- Keypad Section -->
+    <div id="keypad" class="section" style="display:none;">
+      <h2>Keypad Configuration</h2>
+      <div class="keypad-layout">
+        <div class="keypad-config">
+          <div>
+            <label for="addr">Address:</label>
+            <input type="text" id="addr" value="001" maxlength="3" size="3">
+          </div>
+          <div>
+            <label for="devcode">Device Code:</label>
+            <select id="devcode">
+              <option value="01">01 - EVO-LCD-55 LCD Wall Plate</option>
+              <option value="02" selected>02 - EVO-SGP-xx</option>
+            </select>
+          </div>
+          <div>
+            <label for="state">State:</label>
+            <select id="state">
+              <option value="0">0 - Release-off</option>
+              <option value="1" selected>1 - Press-on (Default)</option>
+              <option value="2">2 - Hold-on</option>
+              <option value="5">5 - Short-press</option>
+              <option value="6">6 - Hold-off</option>
+            </select>
+          </div>
+        </div>
+        <div class="keypad-box-container">
+          <div class="keypad-box">
+            <button style="grid-column: 1; grid-row: 1;" onclick="sendKeypadCommand(1)">1</button>
+            <button style="grid-column: 2; grid-row: 1;" onclick="sendKeypadCommand(5)">5</button>
+            <button style="grid-column: 1; grid-row: 2;" onclick="sendKeypadCommand(2)">2</button>
+            <button style="grid-column: 2; grid-row: 2;" onclick="sendKeypadCommand(6)">6</button>
+            <button style="grid-column: 1; grid-row: 3;" onclick="sendKeypadCommand(3)">3</button>
+            <button style="grid-column: 2; grid-row: 3;" onclick="sendKeypadCommand(7)">7</button>
+            <button style="grid-column: 1; grid-row: 4;" onclick="sendKeypadCommand(4)">4</button>
+            <button style="grid-column: 2; grid-row: 4;" onclick="sendKeypadCommand(8)">8</button>
+            <button style="grid-column: 1; grid-row: 5;" onclick="sendKeypadCommand(9)">9</button>
+            <button style="grid-column: 2; grid-row: 5;" onclick="sendKeypadCommand(0)">0</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Channel Section -->
+    <div id="channel" class="section" style="display:none;">
+      <h2>Channel Fade Configuration</h2>
+      <label for="channel-addr">Address:</label>
+      <input type="text" id="channel-addr" value="001" maxlength="3" size="3">
+
+      <label for="channel-devcode">Device Code:</label>
+      <select id="channel-devcode">
+        <option value="04">04 EVO-RP-03-02 Evo 2-channel Relay Module</option>
+        <option value="08">08 EVS-xxx All Legacy Evo Slave Packs</option>
+        <option value="12">12 DIN-02-08 eDIN 2A 8 channel leading edge dimmer module</option>
+        <option value="13">13 DIN-03-04-TE eDIN 3A 4 channel trailing edge dimmer module</option>
+        <option value="14">14 DIN-03-04 eDIN 3A 4 channel leading edge dimmer module</option>
+        <option value="15">15 DIN-INT-00-08 eDIN 8 channel IO module</option>
+        <option value="16">16 DIN-RP-05-04 eDIN 5A 4 channel relay module</option>
+        <option value="17">17 DIN-UBC-01-05 eDIN Universal Ballast Control module</option>
+        <option value="18">18 DIN-DBM-00-08 eDIN 8 channel Configurable Output module</option>
+        <option value="19">19 DIN-DCM-xxx All eDIN Dimmer Packs</option>
+        <option value="144">144 DIN-RP-05-04 eDIN 5A 4 channel mains sync relay module</option>
+        <option value="145">145 DIN-UBC-01-05 eDIN Universal Ballast Control 2 module</option>
+      </select>
+
+      <label for="channel-num">Channel Number:</label>
+      <input type="text" id="channel-num" value="001" maxlength="3" size="3">
+
+      <label for="channel-level">Level:</label>
+      <input type="range" id="channel-level" min="0" max="255" value="0">
+      <span id="channel-level-display">0</span>
+
+      <label for="channel-fadetime">Fade Time (ms):</label>
+      <input type="text" id="channel-fadetime" placeholder="Fade Time in ms" value="100">
+      
+      <button onclick="sendChannelFadeCommand()">Send Channel Command</button>
+    </div>
+
+    <!-- Dali Section -->
+    <div id="dali" class="section" style="display:none;">
+      <label for="dali-ubc">UBC Address:</label>
+      <input type="text" id="dali-ubc" value="001" maxlength="3" size="3">
+      <br><br>
+      <button id="dali-broadcast-btn" onclick="toggleDaliBroadcast()">Start EM Identify Broadcast</button>
+      <br><br>
+      <button id="dali-bst-btn" onclick="toggleDaliBST()">Start Dali BST</button>
+      <br><br>
+      <button onclick="sendDaliOn()">Dali On</button>
+      <button onclick="sendDaliOff()">Dali Off</button>
+      <hr>
+      <h3>Fitting Commands</h3>
+      <label for="dali-fitting-id">Fitting ID:</label>
+      <select id="dali-fitting-id"></select>
+      <button onclick="decrementFittingId()">-</button>
+      <button onclick="incrementFittingId()">+</button>
+      <br><br>
+      <button id="dali-fitting-emidentify-btn" onclick="toggleDaliFittingEMIdentify()">EM Identify</button>
+      <button onclick="sendDaliFittingFunctionTest()">Function Test</button>
+      <button id="dali-fitting-flash-btn" onclick="toggleDaliFittingFlash()">Flash Dali Fitting</button>
+    </div>
+
+    <!-- Area Section -->
+    <div id="area" class="section" style="display:none;">
+      <div class="area-container">
+        <!-- Left side: dynamically generated area tiles -->
+        <div class="areawindowLeft" id="tileContainer"></div>
+        <!-- Right side: scene buttons for the selected area -->
+        <div class="areawindowright"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div id="log-container">
+      <pre id="log"></pre>
+    </div>
+  </footer>
+
+  <!-- Modal Overlay for Scene Edit (hidden by default) -->
+  <div id="sceneEditModal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <h2>Edit Scene</h2>
+      <p><strong>Scene ID:</strong> <span id="modalSceneId"></span></p>
+      <p><strong>Scene Name:</strong> <span id="modalSceneName"></span></p>
+      
+      <!-- Global control buttons -->
+      <div id="globalControls" class="global-controls">
+        <button id="allOffButton" class="global-button">ALL OFF</button>
+        <button id="allOnButton" class="global-button">ALL ON</button>
+        <button id="nudgeAllDownButton" class="global-button">-5% ALL</button>
+        <button id="nudgeAllUpButton" class="global-button">+5% ALL</button>
+      </div>
+      
+      <!-- Container for the list of channels -->
+      <div id="channelList"></div>
+      <div class="modal-buttons">
+        <!-- New "Send" button next to Save and Close -->
+        <button id="modalSendButton">Send</button>
+        <button id="modalSaveButton">Save</button>
+        <button id="modalCloseButton">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+      document.getElementById(sectionId).style.display = 'block';
+      document.querySelectorAll("nav button").forEach(btn => btn.classList.remove("active"));
+      document.getElementById(sectionId + "-btn").classList.add("active");
+      
+      // If the Area section is activated, load the area names.
+      if (sectionId === 'area') {
+        loadAreaNames();
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      showSection('setup');
+      // Populate Fitting ID dropdown (0 to 63)
+      const fittingSelect = document.getElementById('dali-fitting-id');
+      for (let i = 0; i < 64; i++) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.text = i;
+        fittingSelect.appendChild(option);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "edin_gateway",
+  "version": "1.2.0",
+  "description": "Electron app to send commands to lighting gateway via TCP/IP or HTTP",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win msi"
+  },
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "build": {
+    "appId": "com.example.yourapp",
+    "win": {
+      "target": "msi",
+      "certificateFile": null,
+      "certificatePassword": null
+    },
+    "asarUnpack": [
+      "**/node-fetch/**"
+    ]
+  },
+  "author": "",
+  "license": "MIT"
+}
