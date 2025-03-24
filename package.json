@@ -1,12 +1,13 @@
 {
   "name": "edin_gateway",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Electron app to send commands to lighting gateway via TCP/IP or HTTP",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --win msi"
+    "dist": "electron-builder --win",
+    "build": "electron-builder build --win --publish never"
   },
   "devDependencies": {
     "electron": "^27.0.0",
@@ -16,16 +17,45 @@
     "node-fetch": "^2.6.1"
   },
   "build": {
-    "appId": "com.example.yourapp",
+    "appId": "com.axiumdnd.edingateway",
+    "productName": "eDin+ Gateway Control",
+    "copyright": "Copyright © 2024 AxiumDND",
     "win": {
-      "target": "msi",
-      "certificateFile": null,
-      "certificatePassword": null
+      "target": [
+        {
+          "target": "msi",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
     },
+    "msi": {
+      "upgradeCode": "2A5B3CA4-1234-5678-ABCD-E12345678901",
+      "perMachine": true,
+      "shortcutName": "eDin+ Gateway Control"
+    },
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ],
     "asarUnpack": [
       "**/node-fetch/**"
     ]
   },
-  "author": "",
+  "author": "AxiumDND",
   "license": "MIT"
 }
