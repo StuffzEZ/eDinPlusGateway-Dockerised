@@ -213,9 +213,11 @@ footer {
   height: 100%;
   background-color: rgba(0,0,0,0.8);
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Changed from center to allow scrolling from top */
   justify-content: center;
   z-index: 1000;
+  overflow-y: auto; /* Added scrolling capability */
+  padding: 20px 0; /* Added padding to ensure content is not hidden at the edges */
 }
 
 .modal-content {
@@ -225,6 +227,9 @@ footer {
   width: 80%;
   max-width: 1000px;
   border-radius: 8px;
+  max-height: 100%; /* Ensure content respects viewport height */
+  overflow-y: auto; /* Enable scrolling within the modal */
+  margin: 20px 0; /* Add margin to ensure content is not hidden at the edges */
 }
 
 .modal-content h2 {
@@ -434,4 +439,11 @@ footer {
   font-size: 0.9em;
   line-height: 1.4;
   color: #e0e0e0;
+}
+
+/* Make sure channelList is scrollable if it gets too large */
+#channelList {
+  max-height: 60vh; /* Limit height to 60% of viewport height */
+  overflow-y: auto; /* Enable scrolling */
+  padding-right: 10px; /* Add padding for scrollbar */
 }

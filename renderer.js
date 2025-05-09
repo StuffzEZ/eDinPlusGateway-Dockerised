@@ -706,6 +706,10 @@ function openSceneEditModal(scene) {
   document.getElementById('modalSceneName').textContent = scene.name;
   document.getElementById('channelList').innerHTML = "";
   document.getElementById('sceneEditModal').style.display = 'flex';
+  
+  // Ensure scrolling works properly
+  document.body.style.overflow = 'hidden'; // Prevent body scrolling when modal is open
+  
   window.currentEditingScene = scene;
   
   // 1) Trigger the scene with a fast fade.
@@ -724,6 +728,7 @@ function openSceneEditModal(scene) {
 
 function closeSceneEditModal() {
   document.getElementById('sceneEditModal').style.display = 'none';
+  document.body.style.overflow = ''; // Restore body scrolling when modal is closed
 }
 
 // =============================================================================
