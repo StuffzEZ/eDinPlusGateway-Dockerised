@@ -203,6 +203,72 @@
     </div>
   </div>
 
+  <!-- Color Picker Modal -->
+  <div id="colorPickerModal" class="color-picker-modal">
+    <div class="color-picker-tabs">
+      <button class="color-picker-tab active" data-tab="rgb">RGB Color</button>
+      <button class="color-picker-tab" data-tab="white">Tunable White</button>
+      <button class="color-picker-tab" data-tab="advanced">Advanced</button>
+    </div>
+    <div class="color-picker-content">
+      <div class="color-wheel-container">
+        <div class="color-wheel-canvas-wrapper" style="position: relative; width: 200px; height: 200px;">
+          <canvas id="colorWheel" class="color-wheel-canvas" width="200" height="200"></canvas>
+          <div class="color-wheel-thumb"></div>
+        </div>
+        <div class="color-controls">
+          <div class="brightness-control">
+            <input type="range" class="brightness-slider" min="0" max="100" value="100">
+          </div>
+          <div class="color-preview-container">
+            <div class="color-preview"></div>
+            <span class="color-value">#FF0000</span>
+          </div>
+        </div>
+      </div>
+      <div class="tunable-white-container" style="display: none;">
+        <div class="tunable-white-canvas-wrapper" style="position: relative; width: 200px; height: 200px;">
+          <canvas id="tunableWhiteWheel" class="tunable-white-canvas" width="200" height="200"></canvas>
+          <div class="tunable-white-thumb"></div>
+        </div>
+        <div class="color-controls">
+          <div class="brightness-control">
+            <input type="range" class="brightness-slider" min="0" max="100" value="100">
+          </div>
+          <div class="color-preview-container">
+            <div class="color-preview"></div>
+            <span class="color-value">rgb(255,255,255)</span>
+          </div>
+        </div>
+      </div>
+      <div class="advanced-rgb-container" style="display: none;">
+        <div class="advanced-slider-row">
+          <label for="advanced-r-slider">R</label>
+          <input type="range" id="advanced-r-slider" min="0" max="255" value="255">
+          <span id="advanced-r-value">255</span>
+        </div>
+        <div class="advanced-slider-row">
+          <label for="advanced-g-slider">G</label>
+          <input type="range" id="advanced-g-slider" min="0" max="255" value="0">
+          <span id="advanced-g-value">0</span>
+        </div>
+        <div class="advanced-slider-row">
+          <label for="advanced-b-slider">B</label>
+          <input type="range" id="advanced-b-slider" min="0" max="255" value="0">
+          <span id="advanced-b-value">0</span>
+        </div>
+        <div class="color-preview-container">
+          <div class="color-preview"></div>
+          <span class="color-value">rgb(255,0,0)</span>
+        </div>
+      </div>
+    </div>
+    <div class="color-picker-buttons">
+      <button class="color-picker-button" id="colorPickerApply">Apply</button>
+      <button class="color-picker-button" id="colorPickerCancel">Cancel</button>
+    </div>
+  </div>
+
   <script src="renderer.js"></script>
   <script>
     function showSection(sectionId) {

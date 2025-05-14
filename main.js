@@ -13,12 +13,13 @@ const fetch = require('node-fetch/lib/index.js');
 // Global Variables and Settings File Path
 // =============================================================================
 let mainWindow;
-const settingsFile = path.join(__dirname, 'settings.txt');
+const settingsFile = path.join(app.getPath('userData'), 'settings.txt');
 
 // Add global variable for persistent TCP connection
 let tcpClient = null;
 
 console.log("🔍 Electron App Starting...");
+console.log("📁 Settings file location:", settingsFile);
 
 // =============================================================================
 // Application Configuration
@@ -30,21 +31,42 @@ app.disableHardwareAcceleration();
 // =============================================================================
 function readSettings() {
   console.log("📂 Reading settings file...");
-  if (fs.existsSync(settingsFile)) {
-    const content = fs.readFileSync(settingsFile, 'utf-8');
-    console.log("✅ Settings file found.");
-    const settings = {};
-    content.split(/\r?\n/).forEach(line => {
-      const [key, value] = line.split('=');
-      if (key && value) {
-        settings[key.trim()] = value.trim();
-      }
-    });
-    console.log("🔹 Loaded settings:", settings);
-    return settings;
+  try {
+    if (fs.existsSync(settingsFile)) {
+      const content = fs.readFileSync(settingsFile, 'utf-8');
+      console.log("✅ Settings file found.");
+      const settings = {};
+      content.split(/\r?\n/).forEach(line => {
+        const [key, value] = line.split('=');
+        if (key && value) {
+          settings[key.trim()] = value.trim();
+        }
+      });
+      console.log("🔹 Loaded settings:", settings);
+      return settings;
+    }
+    // If no settings file exists, create one with defaults
+    const defaultSettings = {
+      IP_ADDRESS: '192.168.1.100',
+      CONNECTION_TYPE: 'tcp',
+      USERNAME: 'Administrator',
+      PASSWORD: 'mode1234'
+    };
+    const content = Object.entries(defaultSettings)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n');
+    fs.writeFileSync(settingsFile, content, 'utf-8');
+    console.log("📝 Created default settings file");
+    return defaultSettings;
+  } catch (error) {
+    console.error("⚠️ Error handling settings:", error);
+    return {
+      IP_ADDRESS: '192.168.1.100',
+      CONNECTION_TYPE: 'tcp',
+      USERNAME: 'Administrator',
+      PASSWORD: 'mode1234'
+    };
   }
-  console.log("⚠️ No settings file found, using defaults.");
-  return { IP_ADDRESS: '192.168.1.100' };
 }
 
 // =============================================================================
