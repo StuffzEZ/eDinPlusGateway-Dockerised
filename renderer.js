@@ -282,6 +282,18 @@ let currentTemperature = 1800; // Start with warm white
 let tunableWhiteContext = null;
 let isDraggingTunableWhite = false;
 
+// Add this at the top level of the file, after other global variables
+let nudgeIncrement = 5; // Default to 5%
+
+function toggleNudgeIncrement() {
+  nudgeIncrement = nudgeIncrement === 5 ? 1 : 5;
+  // Update all toggle buttons to show current state
+  document.querySelectorAll('.nudge-toggle').forEach(toggle => {
+    toggle.textContent = nudgeIncrement + '%';
+    toggle.title = `Click to switch to ${nudgeIncrement === 5 ? '1' : '5'}% increments`;
+  });
+}
+
 // =============================================================================
 // Add these functions for the color picker modal
 // =============================================================================
@@ -565,7 +577,7 @@ function updateBrightness(e) {
 function populateChannelList(channels) {
   const channelList = document.getElementById('channelList');
   channelList.innerHTML = '';
-
+  
   channels.forEach(channel => {
     const channelDiv = document.createElement('div');
     channelDiv.classList.add('channel-item');
@@ -577,13 +589,13 @@ function populateChannelList(channels) {
     channelDiv.dataset.type = channel.type; // e.g., "CHANNAME", "DMXRGBCOLRNAME"
     channelDiv.dataset.category = getChannelCategory(channel.type);
     channelDiv.dataset.colortype = getColorType(channel.type);
-
+    
     // Create channel name display
     const nameSpan = document.createElement('span');
     nameSpan.textContent = channel.name;
     nameSpan.style.flex = '1';
     channelDiv.appendChild(nameSpan);
-
+    
     // For RGB channels, add color preview and brightness slider
     if (channel.type.includes('RGB') || channel.type.includes('COLR')) {
       const colorPreview = document.createElement('div');
@@ -594,11 +606,11 @@ function populateChannelList(channels) {
       colorPreview.style.cursor = 'pointer';
       colorPreview.onclick = () => showColorPicker(channelDiv);
       channelDiv.appendChild(colorPreview);
-
+      
       const brightnessContainer = document.createElement('div');
       brightnessContainer.style.flex = '1';
       brightnessContainer.style.margin = '0 10px';
-
+      
       const brightnessSlider = document.createElement('input');
       brightnessSlider.type = 'range';
       brightnessSlider.min = '0';
@@ -613,48 +625,65 @@ function populateChannelList(channels) {
       brightnessContainer.appendChild(brightnessSlider);
       channelDiv.appendChild(brightnessContainer);
     } else {
-      // For regular channels, add level slider
+      // For regular channels, add level slider and nudge buttons
       const sliderContainer = document.createElement('div');
-      sliderContainer.style.flex = '1';
-      sliderContainer.style.margin = '0 10px';
-
+      sliderContainer.classList.add('slider-container');
+      
+      const nudgeDown = document.createElement('button');
+      nudgeDown.classList.add('nudge-button');
+      nudgeDown.textContent = '-';
+      nudgeDown.title = 'Decrease level';
+      nudgeDown.addEventListener('click', () => {
+        const slider = channelDiv.querySelector('.channel-slider');
+        nudgeSlider(slider, -1);
+      });
+      
+      const nudgeToggle = document.createElement('button');
+      nudgeToggle.classList.add('nudge-toggle');
+      nudgeToggle.textContent = nudgeIncrement + '%';
+      nudgeToggle.title = `Click to switch to ${nudgeIncrement === 5 ? '1' : '5'}% increments`;
+      nudgeToggle.addEventListener('click', toggleNudgeIncrement);
+      
+      const nudgeUp = document.createElement('button');
+      nudgeUp.classList.add('nudge-button');
+      nudgeUp.textContent = '+';
+      nudgeUp.title = 'Increase level';
+      nudgeUp.addEventListener('click', () => {
+        const slider = channelDiv.querySelector('.channel-slider');
+        nudgeSlider(slider, 1);
+      });
+      
       const slider = document.createElement('input');
       slider.type = 'range';
       slider.min = '0';
       slider.max = '255';
       slider.value = '0';
       slider.classList.add('channel-slider');
-      slider.oninput = (e) => {
-        const level = e.target.value;
-        const percentage = Math.round((level / 255) * 100);
-        const percentageSpan = channelDiv.querySelector('.channel-percentage');
-        if (percentageSpan) {
-          percentageSpan.textContent = `${percentage}%`;
-        }
-      };
+      
+      const percentSpan = document.createElement('span');
+      percentSpan.classList.add('channel-percentage');
+      percentSpan.textContent = '0%';
+      
+      slider.addEventListener('input', () => {
+        const percent = Math.round((parseInt(slider.value, 10) / 255) * 100);
+        percentSpan.textContent = percent + '%';
+      });
+      
+      sliderContainer.appendChild(nudgeDown);
+      sliderContainer.appendChild(nudgeToggle);
+      sliderContainer.appendChild(nudgeUp);
       sliderContainer.appendChild(slider);
+      sliderContainer.appendChild(percentSpan);
       channelDiv.appendChild(sliderContainer);
-
-      const percentageSpan = document.createElement('span');
-      percentageSpan.classList.add('channel-percentage');
-      percentageSpan.textContent = '0%';
-      channelDiv.appendChild(percentageSpan);
     }
-
+    
     channelList.appendChild(channelDiv);
   });
-
-  // New log: Check children of channelList after population
-  console.log('DEBUG: [populateChannelList] Finished populating. Current #channelList children:');
-  for (let i = 0; i < channelList.children.length; i++) {
-    const child = channelList.children[i];
-    console.log(`DEBUG: [populateChannelList] Child ${i}: tagName=${child.tagName}, data-channum=${child.dataset ? child.dataset.channelNum : 'N/A'}`);
-  }
 }
 
 function nudgeSlider(slider, deltaPercent) {
   let currentPercent = Math.round((parseInt(slider.value, 10) / 255) * 100);
-  let newPercent = currentPercent + deltaPercent;
+  let newPercent = currentPercent + (deltaPercent * nudgeIncrement);
   if (newPercent < 0) newPercent = 0;
   if (newPercent > 100) newPercent = 100;
   let newValue = Math.round((newPercent / 100) * 255);
@@ -1782,8 +1811,7 @@ window.onload = () => {
         tunableWhite.style.display = 'block';
         advancedRGB.style.display = 'none';
         currentColorPickerMode = 'white';
-        initTunableWhiteWheel();
-        updateTunableWhiteThumbPosition();
+        setTimeout(() => { initTunableWhiteWheel(); updateTunableWhiteThumbPosition(); }, 0);
       } else if (tabType === 'advanced') {
         colorWheel.style.display = 'none';
         tunableWhite.style.display = 'none';
@@ -1802,59 +1830,119 @@ window.onload = () => {
 };
 
 function initTunableWhiteWheel() {
-  const canvas = document.getElementById('tunableWhiteWheel');
-  if (!canvas) return;
-  
-  tunableWhiteContext = canvas.getContext('2d');
+  console.log('[DEBUG] initTunableWhiteWheel called');
+  const twCanvas = document.getElementById('tunableWhiteCanvas');
+  if (!twCanvas) {
+    console.warn('[DEBUG] tunableWhiteCanvas not found');
+    return;
+  }
+
+  tunableWhiteContext = twCanvas.getContext('2d');
+  twCanvas.width = 200;
+  twCanvas.height = 200;
+
+  // Ensure the color pickers div exists
+  let colorPickersDiv = document.getElementById('tunableWhiteColorPickers');
+  if (!colorPickersDiv) {
+    console.warn('[DEBUG] tunableWhiteColorPickers div not found, creating it');
+    const container = twCanvas.closest('.tunable-white-container');
+    colorPickersDiv = document.createElement('div');
+    colorPickersDiv.id = 'tunableWhiteColorPickers';
+    container.insertBefore(colorPickersDiv, container.firstChild);
+  }
+  colorPickersDiv.innerHTML = '';
+
+  // Add color picker controls
+  const colorControls = document.createElement('div');
+  colorControls.classList.add('tunable-white-controls');
+
+  // Cool color picker
+  const coolControl = createColorPickerControl('Cool', tunableWhiteColors.cool, (color) => {
+    tunableWhiteColors.cool = color;
+    drawTunableWhiteWheel();
+    updateTunableWhiteThumbPosition();
+  });
+
+  // Neutral color picker
+  const neutralControl = createColorPickerControl('Neutral', tunableWhiteColors.neutral, (color) => {
+    tunableWhiteColors.neutral = color;
+    drawTunableWhiteWheel();
+    updateTunableWhiteThumbPosition();
+  });
+
+  // Warm color picker
+  const warmControl = createColorPickerControl('Warm', tunableWhiteColors.warm, (color) => {
+    tunableWhiteColors.warm = color;
+    drawTunableWhiteWheel();
+    updateTunableWhiteThumbPosition();
+  });
+
+  colorControls.appendChild(coolControl);
+  colorControls.appendChild(neutralControl);
+  colorControls.appendChild(warmControl);
+
+  colorPickersDiv.appendChild(colorControls);
+
   drawTunableWhiteWheel();
+  updateTunableWhiteThumbPosition();
+
+  // Attach mouse event handlers
+  if (twCanvas) {
+    twCanvas.onmousedown = startTunableWhiteSelection;
+    twCanvas.onmousemove = updateTunableWhiteSelection;
+    document.onmouseup = stopTunableWhiteSelection;
+  }
+  console.log('[DEBUG] Tunable white color pickers and wheel initialized');
+}
+
+function createColorPickerControl(label, initialColor, onChange) {
+  const control = document.createElement('div');
+  control.classList.add('tunable-white-color-control');
   
-  // Add event listeners for the tunable white wheel
-  canvas.addEventListener('mousedown', startTunableWhiteSelection);
-  canvas.addEventListener('mousemove', updateTunableWhiteSelection);
-  document.addEventListener('mouseup', stopTunableWhiteSelection);
+  const labelSpan = document.createElement('span');
+  labelSpan.textContent = label;
+  
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = initialColor;
+  colorInput.addEventListener('input', (e) => {
+    onChange(e.target.value);
+  });
+  
+  control.appendChild(labelSpan);
+  control.appendChild(colorInput);
+  return control;
 }
 
 function drawTunableWhiteWheel() {
-  const canvas = document.getElementById('tunableWhiteWheel');
-  const ctx = tunableWhiteContext;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const radius = canvas.width / 2 - 10;
+  if (!tunableWhiteContext) return;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const twCanvas = tunableWhiteContext.canvas;
+  const centerX = twCanvas.width / 2;
+  const centerY = twCanvas.height / 2;
+  const radius = Math.min(centerX, centerY) - 10;
 
-  // Draw vertical gradient: top=blue, middle=white, bottom=orange
-  for (let y = 0; y < canvas.height; y++) {
-    const temp = 6500 - ((y / canvas.height) * (6500 - 1800));
-    const rgb = temperatureToRGB(temp);
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.strokeStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
-    ctx.beginPath();
-    ctx.moveTo(0, y + 0.5);
-    ctx.lineTo(canvas.width, y + 0.5);
-    ctx.stroke();
-    ctx.restore();
-  }
+  // Clear the canvas
+  tunableWhiteContext.clearRect(0, 0, twCanvas.width, twCanvas.height);
 
-  // Add a border
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = '#444';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  // Create a vertical linear gradient using the three user-selected colors
+  const gradient = tunableWhiteContext.createLinearGradient(centerX, centerY - radius, centerX, centerY + radius);
+  gradient.addColorStop(0, tunableWhiteColors.cool);    // Top
+  gradient.addColorStop(0.5, tunableWhiteColors.neutral); // Middle
+  gradient.addColorStop(1, tunableWhiteColors.warm);    // Bottom
 
-  // Add temperature labels with more spacing
-  ctx.fillStyle = '#fff';
-  ctx.font = '12px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('6500K', centerX, centerY - radius - 18); // move up
-  ctx.fillText('1800K', centerX, centerY + radius + 28); // move down
+  // Draw the gradient-filled circle
+  tunableWhiteContext.fillStyle = gradient;
+  tunableWhiteContext.beginPath();
+  tunableWhiteContext.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  tunableWhiteContext.fill();
+
+  // Draw border
+  tunableWhiteContext.strokeStyle = '#666';
+  tunableWhiteContext.lineWidth = 2;
+  tunableWhiteContext.beginPath();
+  tunableWhiteContext.arc(centerX, centerY, radius, 0, Math.PI * 2);
+  tunableWhiteContext.stroke();
 }
 
 function temperatureToRGB(temp) {
@@ -1895,11 +1983,11 @@ function stopTunableWhiteSelection() {
 }
 
 function updateTunableWhiteFromPosition(e) {
-  const canvas = document.getElementById('tunableWhiteWheel');
-  const rect = canvas.getBoundingClientRect();
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const radius = canvas.width / 2 - 10;
+  const twCanvas = document.getElementById('tunableWhiteCanvas');
+  const rect = twCanvas.getBoundingClientRect();
+  const centerX = twCanvas.width / 2;
+  const centerY = twCanvas.height / 2;
+  const radius = twCanvas.width / 2 - 10;
   const x = e.clientX - rect.left - centerX;
   const y = e.clientY - rect.top - centerY;
   // Only use vertical position for temperature
@@ -1915,7 +2003,26 @@ function updateTunableWhiteFromPosition(e) {
 function updateTunableWhitePreview() {
   const preview = document.querySelector('.tunable-white-container .color-preview');
   const valueDisplay = document.querySelector('.tunable-white-container .color-value');
-  const rgb = temperatureToRGB(currentTemperature);
+  const twCanvas = document.getElementById('tunableWhiteCanvas');
+  if (!twCanvas || !tunableWhiteContext) return;
+
+  // Calculate thumb position
+  const centerX = twCanvas.width / 2;
+  const centerY = twCanvas.height / 2;
+  const radius = twCanvas.width / 2 - 10;
+  const tempNorm = (currentTemperature - 1800) / (6500 - 1800);
+  const y = Math.round(centerY - radius + (1 - tempNorm) * (2 * radius));
+  const x = Math.round(centerX);
+
+  // Sample the color under the thumb
+  let rgb = { r: 255, g: 255, b: 255 };
+  try {
+    const pixel = tunableWhiteContext.getImageData(x, y, 1, 1).data;
+    rgb = { r: pixel[0], g: pixel[1], b: pixel[2] };
+  } catch (e) {
+    console.warn('Could not sample color from canvas:', e);
+  }
+
   if (preview) {
     preview.style.backgroundColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
   }
@@ -1927,12 +2034,12 @@ function updateTunableWhitePreview() {
 }
 
 function updateTunableWhiteThumbPosition() {
-  const canvas = document.getElementById('tunableWhiteWheel');
+  const twCanvas = document.getElementById('tunableWhiteCanvas');
   const thumb = document.querySelector('.tunable-white-thumb');
-  if (!canvas || !thumb) return;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const radius = canvas.width / 2 - 10;
+  if (!twCanvas || !thumb) return;
+  const centerX = twCanvas.width / 2;
+  const centerY = twCanvas.height / 2;
+  const radius = twCanvas.width / 2 - 10;
   // The thumb's center should match the wheel's center and radius
   const tempNorm = (currentTemperature - 1800) / (6500 - 1800);
   const y = centerY - radius + (1 - tempNorm) * (2 * radius);
@@ -1967,3 +2074,9 @@ function updateAdvancedRGBPreview() {
 document.getElementById('advanced-r-slider').addEventListener('input', updateAdvancedRGBPreview);
 document.getElementById('advanced-g-slider').addEventListener('input', updateAdvancedRGBPreview);
 document.getElementById('advanced-b-slider').addEventListener('input', updateAdvancedRGBPreview);
+
+let tunableWhiteColors = {
+  cool: '#7575FF',    // rgb(117,117,255)
+  neutral: '#FFFFFF', // White (middle)
+  warm: '#FEB833'     // rgb(254,184,51)
+};

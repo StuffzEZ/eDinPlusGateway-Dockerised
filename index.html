@@ -226,15 +226,13 @@
           </div>
         </div>
       </div>
-      <div class="tunable-white-container" style="display: none;">
+      <div class="tunable-white-container" style="display: none; flex-direction: column; align-items: center; width: 100%;">
+        <div id="tunableWhiteColorPickers"></div>
         <div class="tunable-white-canvas-wrapper" style="position: relative; width: 200px; height: 200px;">
-          <canvas id="tunableWhiteWheel" class="tunable-white-canvas" width="200" height="200"></canvas>
+          <canvas id="tunableWhiteCanvas" class="tunable-white-canvas" width="200" height="200"></canvas>
           <div class="tunable-white-thumb"></div>
         </div>
         <div class="color-controls">
-          <div class="brightness-control">
-            <input type="range" class="brightness-slider" min="0" max="100" value="100">
-          </div>
           <div class="color-preview-container">
             <div class="color-preview"></div>
             <span class="color-value">rgb(255,255,255)</span>
