@@ -1,3 +1,5 @@
+[![Build and Push eDinPlusGateway Docker Image](https://github.com/StuffzEZ/eDinPlusGateway-Dockerised/actions/workflows/docker-build.yml/badge.svg)](https://github.com/StuffzEZ/eDinPlusGateway-Dockerised/actions/workflows/docker-build.yml)
+
 # eDin+ Gateway Control
 
 A web-based control interface for eDin+ Gateway devices. This application provides a user-friendly interface for configuring and controlling eDin+ Gateway systems, including keypad configuration, channel control, DALI management, and area/scene control.
